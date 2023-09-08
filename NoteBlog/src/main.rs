@@ -1,13 +1,13 @@
 #[macro_use]
 extern crate diesel;
 
-use diesel::{Connection, RunQueryDsl};
+use diesel::{Connection, RunQueryDsl, QueryDsl, ExpressionMethods};
 use dotenvy::dotenv;
 use std::env;
 use::diesel::pg::PgConnection;
 use::diesel::prelude;
 
-use crate::models::{Post, NewPost};
+use crate::models::{Post, NewPost, SimplifiedPost};
 
 pub mod schema;
 pub mod models;
@@ -21,21 +21,37 @@ fn main() {
 
     let conn = &mut PgConnection::establish(&db_url).expect("Unable to connect to DB.");
 
-    let new_post = NewPost {
-        title: "Primer registro",
-        body: "Lorem ipsum...",
-        slug: "primer-post",
+/*     let new_post = NewPost {
+        title: "Duodecimo post",
+        body: "12 Lorem ipsum...",
+        slug: "duodecimo-post",
     };
-
-    diesel::insert_into(posts).values(new_post).get_result::<Post>(conn).expect("Fallo al insertar datos");
+*/
+//    diesel::insert_into(posts).values(new_post).get_result::<Post>(conn).expect("Fallo al insertar datos");
     
-
-   let post_result = posts.load::<Post>(conn).expect("Wrong query");
-
-   for post in post_result {
-    println!("{}", post.title);
+// Muestra todos los registros de posts
+   let all_posts = posts.order(id).load::<Post>(conn).expect("Consulta incorrecta");
+   for post in all_posts {
+    println!("{:?}", post);
    }
-    println!("C");
+// Muestra un número limitado de registros
+let limited_posts = posts.limit(2).load::<Post>(conn).expect("Error al mostrar un registro'");
+for post in limited_posts {
+    println!("El registo pedido es: {:?}", post);
+}
 
+// Hacer queries de columnas usando una tupla ( , )
+let column_select = posts.order(id).select((slug, body)).load::<SimplifiedPost>(conn).expect("Error al mostrar columnas");
+for post in column_select {
+    print!("Los registros por slug y body: {:?} \n", post);
+}
 
+//Query con where id = 9
+let where_limited_query = posts.filter(id.eq(9)).limit(1).load::<Post>(conn).expect("");
+for post in where_limited_query {
+    print!("The where asserted post is: {:?}", post);
+}
+
+//Update posts
+let updated_post = diesel::update(posts.filter(id.eq(1))).set(title.eq("Primer post")).get_result::<Post>(conn).expect("Error updating");
 }
