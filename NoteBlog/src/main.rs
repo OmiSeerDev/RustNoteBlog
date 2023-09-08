@@ -43,15 +43,16 @@ for post in limited_posts {
 // Hacer queries de columnas usando una tupla ( , )
 let column_select = posts.order(id).select((slug, body)).load::<SimplifiedPost>(conn).expect("Error al mostrar columnas");
 for post in column_select {
-    print!("Los registros por slug y body: {:?} \n", post);
+    println!("Los registros por slug y body: {:?}", post);
 }
 
 //Query con where id = 9
 let where_limited_query = posts.filter(id.eq(9)).limit(1).load::<Post>(conn).expect("");
 for post in where_limited_query {
-    print!("The where asserted post is: {:?}", post);
+    println!("The where asserted post is: {:?}", post);
 }
 
 //Update posts
 let updated_post = diesel::update(posts.filter(id.eq(1))).set(title.eq("Primer post")).get_result::<Post>(conn).expect("Error updating");
+println!("Updated post: {:?}", updated_post);
 }
