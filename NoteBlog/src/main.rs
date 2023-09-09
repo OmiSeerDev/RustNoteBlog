@@ -1,14 +1,15 @@
 #[macro_use]
 extern crate diesel;
 
-use diesel::{Connection, RunQueryDsl, QueryDsl, ExpressionMethods};
+use diesel::{Connection, RunQueryDsl, QueryDsl, ExpressionMethods, connection};
 use dotenvy::dotenv;
 use std::env;
 use::diesel::pg::PgConnection;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 
 use crate::models::{Post, NewPost, SimplifiedPost};
-
+use diesel::r2d2::{self,ConnectionManager};
+use diesel::r2d2::Pool;
 pub mod schema;
 pub mod models;
 
@@ -20,15 +21,21 @@ async fn hello_world()-> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
-    HttpServer::new(|| {
-        App::new().service(hello_world)
+    let db_url = env::var("DATABASE_URL").expect("Database url was not found");
+
+    let connection = ConnectionManager::<PgConnection>::new(db_url);
+    let pool = Pool::builder().build(connection).expect("No se pudo construir el pool");
+
+    HttpServer::new(move || {
+        App::new().service(hello_world).data(pool.clone())
     }).bind(("http://localhost", 1339)).unwrap().run().await;
+
 
     use self::schema::posts::dsl::*;
 
-    let db_url = env::var("DATABASE_URL").expect("Database url was not found");
-
+    
     let conn = &mut PgConnection::establish(&db_url).expect("Unable to connect to DB.");
+
 
      let new_post = NewPost {
         title: "Duodecimo post",
