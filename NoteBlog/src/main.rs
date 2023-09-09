@@ -30,13 +30,13 @@ async fn main() -> std::io::Result<()> {
 
     let conn = &mut PgConnection::establish(&db_url).expect("Unable to connect to DB.");
 
-/*     let new_post = NewPost {
+     let new_post = NewPost {
         title: "Duodecimo post",
         body: "12 Lorem ipsum...",
         slug: "duodecimo-post",
     };
-*/
-//    diesel::insert_into(posts).values(new_post).get_result::<Post>(conn).expect("Fallo al insertar datos");
+
+    diesel::insert_into(posts).values(new_post).get_result::<Post>(conn).expect("Fallo al insertar datos");
     
 // Muestra todos los registros de posts
    let all_posts = posts.order(id).load::<Post>(conn).expect("Consulta incorrecta");
@@ -62,6 +62,6 @@ for post in where_limited_query {
 }
 
 //Update posts
-let updated_post = diesel::update(posts.filter(id.eq(1))).set(title.eq("Primer post")).get_result::<Post>(conn).expect("Error updating");
+let updated_post = diesel::update(posts.filter(id.eq(1))).set(title.eq("Primer post")).get_result::<Post>(conn).expect("Error al actualizar registros");
 println!("Updated post: {:?}", updated_post);
 }
