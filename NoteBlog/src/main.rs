@@ -5,15 +5,24 @@ use diesel::{Connection, RunQueryDsl, QueryDsl, ExpressionMethods};
 use dotenvy::dotenv;
 use std::env;
 use::diesel::pg::PgConnection;
-use::diesel::prelude;
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 
 use crate::models::{Post, NewPost, SimplifiedPost};
 
 pub mod schema;
 pub mod models;
 
-fn main() {
+#[get ("/hw")]
+async fn hello_world()-> impl Responder {
+    HttpResponse::Ok().body("Hello world")
+}
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
     dotenv().ok();
+    HttpServer::new(|| {
+        App::new().service(hello_world)
+    }).bind(("127.0.0.1", 1331)).unwrap().run().await;
 
     use self::schema::posts::dsl::*;
 
