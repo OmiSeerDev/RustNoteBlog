@@ -22,7 +22,7 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
     HttpServer::new(|| {
         App::new().service(hello_world)
-    }).bind(("127.0.0.1", 1331)).unwrap().run().await;
+    }).bind(("http://localhost", 1339)).unwrap().run().await;
 
     use self::schema::posts::dsl::*;
 
