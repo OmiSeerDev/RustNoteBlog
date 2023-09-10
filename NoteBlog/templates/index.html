@@ -5,15 +5,24 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Rust App</title>
+    <link href="https://getbootstrap.com/docs/5.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link type="stylesheet" href="indexstyle.css">
 </head>
 <body>
-    {% for post in gotten_posts %}
-    <div>
-        <h1>
-            <a href="/watch/{{post.slug}}">{{post.title}}</a>
-        </h1>
-        <p>{{post.body}}</p>
-    </div>
-    {% endfor %}
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Home</a>
+        </div>
+    </nav>
+    <main class="container">
+        {% for post in gotten_posts %}
+                <div class="bg-light p-5 rounded">
+                    <a class="h1" href="/watch/{{ post.slug }}">{{ post.title }}</a>
+                    <p class="lead">{{ post.body | truncate(length=150) }}</p>
+                </div>
+        {% endfor %}
+    </main>
+    
+    <script src="https://getbootstrap.com/docs/5.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 </body>
 </html>
