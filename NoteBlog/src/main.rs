@@ -43,7 +43,7 @@ async fn create_post(pool :web::Data<Dbpool>, item: web::Json<NewPostHandler>)->
 #[get ("/")]
 async fn tera_renderer(template: web::Data<tera::Tera>)-> impl Responder {
 
-    let mut context = tera::Context::new();
+    let context = tera::Context::new();
     return HttpResponse::Ok().content_type("text/html").body(
         template.render("index.html", &context).unwrap());
 }
