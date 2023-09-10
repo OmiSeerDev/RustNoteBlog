@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate diesel;
 
-use diesel::{Connection, RunQueryDsl, QueryDsl, ExpressionMethods, connection};
+use diesel::{Connection, RunQueryDsl, QueryDsl, ExpressionMethods, connection, Insertable};
 use dotenvy::dotenv;
 use std::env;
 use::diesel::pg::PgConnection;
@@ -28,6 +28,23 @@ async fn index(pool: web::Data<Dbpool>)-> impl Responder {
 }
 }
 
+#[post ("/posts/new-post/")]
+async fn create_post(pool :web::Data<Dbpool>)-> impl Responder {
+    let mut conn = pool.get().expect("No se pudo conectar a la base de datos");
+    
+    let new_post = NewPost {
+        title: "Décimo tercer post", body:"13",
+         slug: "decimotercer-post"
+        };
+
+    match web::block(move || {
+        diesel::insert_into(posts).values(new_post).get_result::<Post>(&mut conn)}).await {
+        Ok(data) => HttpResponse::Ok().body(
+            format!("{:?}\n", data)),
+        Err(err) => HttpResponse::Ok().body(format!("{:?}", err))
+    }
+}
+
 #[actix_web::main]
 async fn main()-> std::io::Result<()> {
     dotenv().ok();
@@ -40,7 +57,7 @@ async fn main()-> std::io::Result<()> {
 
     HttpServer::new(move || {
         // Compartimos el pool de conexión a cada endpoint
-        App::new().service(index).app_data(web::Data::new(pool.clone()))
+        App::new().service(index).service(create_post).app_data(web::Data::new(pool.clone()))
     }).bind(("localhost", 1333)).unwrap().run().await
 /*
     
