@@ -57,7 +57,10 @@ async fn main()-> std::io::Result<()> {
 
     HttpServer::new(move || {
         // Compartimos el pool de conexión a cada endpoint
-        App::new().service(index).service(create_post).app_data(web::Data::new(pool.clone()))
+        App::new()
+        .service(index)
+        .service(create_post)
+        .app_data(web::Data::new(pool.clone()))
     }).bind(("localhost", 1333)).unwrap().run().await
 /*
     
