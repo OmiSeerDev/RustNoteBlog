@@ -4,16 +4,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Rust App</title>
+    <title>Post</title>
 </head>
 <body>
-    {% for post in gotten_posts %}
-    <div>
-        <h1>
-            <a href="/watch/{{post.slug}}">{{post.title}}</a>
-        </h1>
-        <p>{{post.body}}</p>
-    </div>
-    {% endfor %}
+    <header><h1> {{gotten_post.title}}</h1></header>
+    <section><p>{{gotten_post.body}}</p></section>
 </body>
 </html>
