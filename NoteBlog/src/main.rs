@@ -5,42 +5,52 @@ use diesel::{Connection, RunQueryDsl, QueryDsl, ExpressionMethods, connection};
 use dotenvy::dotenv;
 use std::env;
 use::diesel::pg::PgConnection;
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
 
+pub mod schema;
+pub mod models;
 use crate::models::{Post, NewPost, SimplifiedPost};
 use diesel::r2d2::{self,ConnectionManager};
 use diesel::r2d2::Pool;
-pub mod schema;
-pub mod models;
 
-#[get ("/hw")]
-async fn hello_world()-> impl Responder {
-    HttpResponse::Ok().body("Hello world")
+pub type Dbpool = r2d2::Pool<ConnectionManager<PgConnection>>;
+
+use self::schema::posts;
+use self::schema::posts::dsl::*;
+
+#[get ("/posts/")]
+async fn index(pool: web::Data<Dbpool>)-> impl Responder {
+    let mut conn = pool.get().expect("No se pudo conectar a la base de datos");
+    match web::block(move || {posts.order(id).load::<Post>(&mut conn)}).await {
+        Ok(data) => HttpResponse::Ok().body(
+            format!("{:?}\n", data)),
+        Err(err) => HttpResponse::Ok().body(format!("{:?}", err))
+}
 }
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main()-> std::io::Result<()> {
     dotenv().ok();
-    let db_url = env::var("DATABASE_URL").expect("Database url was not found");
+    let db_url = env::var("DATABASE_URL").expect("La variable de entorno DATABASE_URL no existe.");
 
     let connection = ConnectionManager::<PgConnection>::new(db_url);
-    let pool = Pool::builder().build(connection).expect("No se pudo construir el pool");
+
+    // El POOL sirve para compartir la conexión con otros servicios
+    let pool = Pool::builder().build(connection).expect("No se pudo construir el Pool.");
 
     HttpServer::new(move || {
-        App::new().service(hello_world).data(pool.clone())
-    }).bind(("http://localhost", 1339)).unwrap().run().await;
-
-
-    use self::schema::posts::dsl::*;
-
+        // Compartimos el pool de conexión a cada endpoint
+        App::new().service(index).app_data(web::Data::new(pool.clone()))
+    }).bind(("localhost", 1333)).unwrap().run().await
+/*
     
     let conn = &mut PgConnection::establish(&db_url).expect("Unable to connect to DB.");
 
 
      let new_post = NewPost {
-        title: "Duodecimo post",
-        body: "12 Lorem ipsum...",
-        slug: "duodecimo-post",
+        title: "Decimo tercer post",
+        body: "13 Lorem ipsum...",
+        slug: "decimo tercer-post",
     };
 
     diesel::insert_into(posts).values(new_post).get_result::<Post>(conn).expect("Fallo al insertar datos");
@@ -70,5 +80,5 @@ for post in where_limited_query {
 
 //Update posts
 let updated_post = diesel::update(posts.filter(id.eq(1))).set(title.eq("Primer post")).get_result::<Post>(conn).expect("Error al actualizar registros");
-println!("Updated post: {:?}", updated_post);
+println!("Updated post: {:?}", updated_post);*/
 }
